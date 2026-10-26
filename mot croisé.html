@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grille de mots croisés</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #EDEFE7;
+    --white: #FFFFFF;
+    --ink: #21221D;
+    --line: #B9BEB2;
+    --line-soft: #D8DBD1;
+    --accent: #2F5DAA;
+    --accent-soft: #DCE6F5;
+    --accent-ink: #FFFFFF;
+    --muted: #6C6F64;
+    --black-cell: #1B1B18;
+    --radius: 6px;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper: #1B1D18;
+      --white: #24261F;
+      --ink: #E8E9E2;
+      --line: #454A3C;
+      --line-soft: #33362C;
+      --accent: #7FA6E8;
+      --accent-soft: #23324A;
+      --accent-ink: #0E1116;
+      --muted: #9A9D8F;
+      --black-cell: #0A0A09;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper: #1B1D18;
+    --white: #24261F;
+    --ink: #E8E9E2;
+    --line: #454A3C;
+    --line-soft: #33362C;
+    --accent: #7FA6E8;
+    --accent-soft: #23324A;
+    --accent-ink: #0E1116;
+    --muted: #9A9D8F;
+    --black-cell: #0A0A09;
+  }
+  * { box-sizing: border-box; }
+  html{ scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html,body{
+    margin:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+  .app{
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  header{ margin-bottom: 1.75rem; }
+  h1{
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(1.6rem, 3vw, 2.15rem);
+    margin: 0 0 0.35rem;
+    letter-spacing: -0.01em;
+  }
+  header p{
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 60ch;
+  }
+  .controls{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.9rem 1.6rem;
+    padding: 1rem 1.1rem;
+    background: var(--white);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    margin-bottom: 1.4rem;
+  }
+  .control-group{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.1rem;
+  }
+  .field{
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+  }
+  .field input[type="number"]{
+    width: 3.4rem;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font: inherit;
+    color: var(--ink);
+    background: var(--white);
+  }
+  .field input[type="number"]:focus-visible,
+  button:focus-visible,
+  input[type="checkbox"]:focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  label.check{
+    display:flex;
+    align-items:center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button{
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 0.45rem 0.85rem;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button:hover{ border-color: var(--accent); color: var(--accent); }
+  button.primary{
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  button.primary:hover{ background: #274d8f; color: var(--accent-ink); }
+  .divider{
+    width: 1px;
+    align-self: stretch;
+    background: var(--line-soft);
+  }
+  .print-status{
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .text-panel{
+    background: var(--white);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1.4rem;
+  }
+  .text-panel.hidden{ display: none; }
+  .text-panel textarea{
+    width: 100%;
+    min-height: 160px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    padding: 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    resize: vertical;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .text-panel .row{
+    display:flex; justify-content: space-between; align-items:center;
+    margin-bottom: 0.6rem;
+  }
+  .text-panel h2{
+    font-family: "Newsreader", serif;
+    font-size: 1.05rem;
+    margin: 0;
+    font-weight: 600;
+  }
+  .text-panel .actions{ display:flex; gap: 0.5rem; margin-top: 0.7rem; }
+  .text-panel p.note{ font-size: 0.8rem; color: var(--muted); margin: 0.5rem 0 0; }
+
+  main{
+    display: flex;
+    justify-content: center;
+  }
+  #grid-wrap{
+    width: 100%;
+    max-width: 720px;
+    container-type: inline-size;
+  }
+  .grid{
+    display: grid;
+    gap: 2px;
+    background: var(--line);
+    border: 2px solid var(--ink);
+    width: 100%;
+  }
+  .cell{
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cell.black{ background: var(--black-cell); cursor: pointer; }
+  .cell.in-word{ background: var(--accent-soft); }
+  .cell.selected{ background: var(--accent); }
+  .cell.selected.black{ background: var(--black-cell); box-shadow: inset 0 0 0 2px var(--accent); }
+  .cell-letter{
+    font-family: "Inter", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 4.6cqw;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .cell.selected .cell-letter{ color: var(--accent-ink); }
+  .cell-number{
+    position: absolute;
+    top: 1px;
+    left: 2px;
+    font-size: 1.7cqw;
+    line-height: 1;
+    color: var(--muted);
+    font-family: "Inter", system-ui, sans-serif;
+  }
+  .cell.selected .cell-number{ color: var(--accent-soft); }
+  .cell.sep-right{ border-right: 2px dashed var(--ink); }
+  .cell.sep-bottom{ border-bottom: 2px dashed var(--ink); }
+  .grid:not(.show-numbers) .cell-number{ display: none; }
+  .cell-dir{
+    position: absolute;
+    bottom: 2px;
+    right: 3px;
+    font-size: 2.6cqw;
+    color: var(--accent-ink);
+    line-height: 1;
+    opacity: 0.85;
+  }
+
+  .definitions{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem 2.2rem;
+    margin-top: 2rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--line-soft);
+  }
+  .def-column h2{
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 0.7rem;
+  }
+  .def-list{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .def-item{
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .def-badge{
+    flex: 0 0 auto;
+    min-width: 1.7rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+  }
+  .def-badge:hover{ border-color: var(--accent); color: var(--accent); }
+  .def-badge:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+  .def-input{
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font: inherit;
+    font-size: 0.88rem;
+    color: var(--ink);
+    background: var(--white);
+  }
+  .def-input:focus-visible{ outline: 2px solid var(--accent); outline-offset: 1px; }
+  .def-len{
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .def-print-text{ display: none; }
+  @media (max-width: 640px){
+    .definitions{ grid-template-columns: 1fr; }
+  }
+  @page{ margin: 1.4cm; }
+  @media print{
+    .definitions{
+      border-top: none;
+      margin-top: 1.6rem;
+      padding-top: 0;
+      gap: 0.8rem 2rem;
+    }
+    .def-column h2{
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid #000;
+      padding-bottom: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .def-list{ gap: 0.28rem; }
+    .def-item{ align-items: baseline; gap: 0.4rem; }
+    .def-badge{
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      padding: 0;
+      min-width: auto;
+      font-weight: 700;
+      cursor: default;
+    }
+    .def-badge::after{ content: "."; }
+    .def-input{ display: none; }
+    .def-print-text{
+      display: inline;
+      font-family: "Newsreader", Georgia, serif;
+      font-size: 0.86rem;
+      color: var(--ink);
+    }
+    .def-len{ font-size: 0.72rem; }
+  }
+
+  .hint{
+    margin-top: 1.4rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    max-width: 62ch;
+  }
+  .hint b{ color: var(--ink); font-weight: 600; }
+
+  #hidden-input{
+    position: fixed;
+    top: 0; left: 0;
+    width: 1px; height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .confirm-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 21, 17, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 10;
+  }
+  .confirm-overlay.hidden{ display: none; }
+  .confirm-box{
+    background: var(--white);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 1.3rem;
+    max-width: 26rem;
+    box-shadow: 0 12px 32px rgba(20, 21, 17, 0.18);
+  }
+  .confirm-box p{
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+  .confirm-actions{
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+  }
+
+  @media print{
+    .controls, .text-panel, .hint, header p{ display: none !important; }
+    body{ background: #fff; }
+    .app{ padding: 0; max-width: none; }
+    header{
+      margin-bottom: 1.2rem;
+      text-align: center;
+      border-bottom: 1px solid #000;
+      padding-bottom: 0.8rem;
+    }
+    h1{ font-size: 1.4rem; letter-spacing: 0.02em; }
+    main{ display: block; }
+    #grid-wrap{ max-width: 420px; margin: 0 auto; }
+    .cell.selected{ background: var(--white); }
+    .cell.selected .cell-letter{ color: var(--ink); }
+    .cell.selected .cell-number{ color: var(--muted) !important; }
+    .cell-dir{ display: none !important; }
+    body.hide-letters-print .cell-letter{ visibility: hidden; }
+  }
+
+  @media (max-width: 560px){
+    .app{ padding: 1.5rem 1rem 3rem; }
+    .controls{ gap: 0.7rem 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Grille de mots croisés</h1>
+    <p>Choisis une taille, clique une case pour écrire une lettre, appuie sur espace pour poser ou retirer une case noire.</p>
+  </header>
+
+  <div class="controls">
+    <div class="control-group">
+      <span class="field"><label for="rows-input">Lignes</label>
+        <input type="number" id="rows-input" min="3" max="30" value="13"></span>
+      <span class="field"><label for="cols-input">Colonnes</label>
+        <input type="number" id="cols-input" min="3" max="30" value="13"></span>
+      <button id="new-grid-btn" class="primary">Nouvelle grille</button>
+    </div>
+    <div class="divider"></div>
+    <div class="control-group">
+      <label class="check"><input type="checkbox" id="numbering-toggle" checked> Numérotation</label>
+      <label class="check"><input type="checkbox" id="symmetry-toggle"> Symétrie 180°</label>
+      <label class="check"><input type="checkbox" id="hide-letters-print" checked> Cacher les lettres à l'impression</label>
+    </div>
+    <div class="divider"></div>
+    <div class="control-group">
+      <button id="print-btn">Télécharger version imprimable</button>
+      <button id="export-btn">Exporter / importer</button>
+      <span id="print-status" class="print-status" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <div class="text-panel hidden" id="text-panel">
+    <div class="row">
+      <h2>Grille en texte</h2>
+      <button id="close-text-panel">Fermer</button>
+    </div>
+    <textarea id="text-area" spellcheck="false"></textarea>
+    <div class="actions">
+      <button id="copy-text-btn">Copier</button>
+      <button id="apply-text-btn" class="primary">Charger cette grille</button>
+    </div>
+    <p class="note">Un point = case blanche vide, un dièse (#) = case noire, une lettre = case remplie. Les lignes « SEP 3,5,D » indiquent un trait pointillé à droite de la case ligne 3, colonne 5 (« B » = en dessous). Les lignes « H3 : … » ou « V5 : … » contiennent les définitions. Modifie le texte puis clique sur « Charger cette grille » pour l'appliquer — les dimensions s'ajustent automatiquement au texte collé.</p>
+  </div>
+
+  <main>
+    <div id="grid-wrap">
+      <div class="grid show-numbers" id="grid" role="grid" aria-label="Grille de mots croisés"></div>
+    </div>
+  </main>
+
+  <section class="definitions" aria-label="Définitions">
+    <div class="def-column">
+      <h2>Horizontalement</h2>
+      <ul class="def-list" id="def-across"></ul>
+    </div>
+    <div class="def-column">
+      <h2>Verticalement</h2>
+      <ul class="def-list" id="def-down"></ul>
+    </div>
+  </section>
+
+  <p class="hint"><b>Astuce</b> — clique une case pour la sélectionner, reclique dessus pour passer d'horizontal à vertical. Tape une lettre pour l'écrire, les flèches pour te déplacer, retour arrière pour effacer. Espace ou « . » bascule une case noire (la sélection avance sans jamais traverser une case noire). Clique le numéro d'un mot dans les définitions pour t'y rendre directement. « - » ou « / » trace (ou retire) un trait pointillé entre la case précédente et la case sélectionnée, pour séparer deux mots d'une même réponse. « Télécharger version imprimable » enregistre un fichier HTML sobre (grille en haut, définitions numérotées en dessous) — ouvre-le puis utilise Ctrl/Cmd+P pour l'imprimer ou l'enregistrer en PDF.</p>
+</div>
+
+<input id="hidden-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-hidden="true" tabindex="-1">
+
+<div class="confirm-overlay hidden" id="confirm-overlay">
+  <div class="confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="confirm-message">
+    <p id="confirm-message"></p>
+    <div class="confirm-actions">
+      <button id="confirm-cancel">Annuler</button>
+      <button id="confirm-ok" class="primary">Continuer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var state = {
+    rows: 13,
+    cols: 13,
+    grid: [],
+    selected: null,
+    direction: "across",
+    showNumbers: true,
+    symmetry: false,
+    clues: {}
+  };
+
+  var gridEl = document.getElementById("grid");
+  var rowsInput = document.getElementById("rows-input");
+  var colsInput = document.getElementById("cols-input");
+  var newGridBtn = document.getElementById("new-grid-btn");
+  var numberingToggle = document.getElementById("numbering-toggle");
+  var symmetryToggle = document.getElementById("symmetry-toggle");
+  var hideLettersPrint = document.getElementById("hide-letters-print");
+  var printBtn = document.getElementById("print-btn");
+  var printStatus = document.getElementById("print-status");
+  var exportBtn = document.getElementById("export-btn");
+  var textPanel = document.getElementById("text-panel");
+  var textArea = document.getElementById("text-area");
+  var closeTextPanel = document.getElementById("close-text-panel");
+  var copyTextBtn = document.getElementById("copy-text-btn");
+  var applyTextBtn = document.getElementById("apply-text-btn");
+  var hiddenInput = document.getElementById("hidden-input");
+  var confirmOverlay = document.getElementById("confirm-overlay");
+  var confirmMessage = document.getElementById("confirm-message");
+  var confirmOkBtn = document.getElementById("confirm-ok");
+  var confirmCancelBtn = document.getElementById("confirm-cancel");
+  var pendingConfirm = null;
+
+  function showConfirm(message, onConfirm){
+    confirmMessage.textContent = message;
+    pendingConfirm = onConfirm;
+    confirmOverlay.classList.remove("hidden");
+    confirmOkBtn.focus();
+  }
+
+  function hideConfirm(){
+    confirmOverlay.classList.add("hidden");
+    pendingConfirm = null;
+  }
+
+  confirmOkBtn.addEventListener("click", function(){
+    var action = pendingConfirm;
+    hideConfirm();
+    if (action) action();
+  });
+
+  confirmCancelBtn.addEventListener("click", hideConfirm);
+
+  confirmOverlay.addEventListener("click", function(e){
+    if (e.target === confirmOverlay) hideConfirm();
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && !confirmOverlay.classList.contains("hidden")) hideConfirm();
+  });
+
+  function makeGrid(rows, cols){
+    var g = [];
+    for (var r = 0; r < rows; r++){
+      var row = [];
+      for (var c = 0; c < cols; c++){
+        row.push({ black: false, letter: "", sepRight: false, sepBottom: false });
+      }
+      g.push(row);
+    }
+    return g;
+  }
+
+  function isGridEmpty(){
+    for (var r = 0; r < state.rows; r++){
+      for (var c = 0; c < state.cols; c++){
+        var cell = state.grid[r][c];
+        if (cell.black || cell.letter) return false;
+      }
+    }
+    return true;
+  }
+
+  function inBounds(r, c){
+    return r >= 0 && r < state.rows && c >= 0 && c < state.cols;
+  }
+
+  function wordParts(r, c, len, dir){
+    var parts = [];
+    var count = 0;
+    for (var i = 0; i < len; i++){
+      var rr = dir === "down" ? r + i : r;
+      var cc = dir === "across" ? c + i : c;
+      count++;
+      var cell = state.grid[rr][cc];
+      var sep = dir === "down" ? cell.sepBottom : cell.sepRight;
+      if (sep && i < len - 1){ parts.push(count); count = 0; }
+    }
+    parts.push(count);
+    return parts;
+  }
+
+  function lenLabel(w){
+    return w.parts.length > 1 ? w.parts.join(",") : String(w.length);
+  }
+
+  function analyzeGrid(){
+    var numbers = {};
+    var across = [];
+    var down = [];
+    var counter = 1;
+    for (var r = 0; r < state.rows; r++){
+      for (var c = 0; c < state.cols; c++){
+        var cell = state.grid[r][c];
+        if (cell.black) continue;
+        var leftBlocked = (c === 0) || state.grid[r][c - 1].black;
+        var rightOpen = (c + 1 < state.cols) && !state.grid[r][c + 1].black;
+        var topBlocked = (r === 0) || state.grid[r - 1][c].black;
+        var bottomOpen = (r + 1 < state.rows) && !state.grid[r + 1][c].black;
+        var startsAcross = leftBlocked && rightOpen;
+        var startsDown = topBlocked && bottomOpen;
+        if (!startsAcross && !startsDown) continue;
+        var num = counter++;
+        numbers[r + "-" + c] = num;
+        if (startsAcross){
+          var lenA = 1, cc = c;
+          while (cc + 1 < state.cols && !state.grid[r][cc + 1].black){ lenA++; cc++; }
+          across.push({ r: r, c: c, number: num, length: lenA, parts: wordParts(r, c, lenA, "across"), key: r + "-" + c + "-across" });
+        }
+        if (startsDown){
+          var lenD = 1, rr = r;
+          while (rr + 1 < state.rows && !state.grid[rr + 1][c].black){ lenD++; rr++; }
+          down.push({ r: r, c: c, number: num, length: lenD, parts: wordParts(r, c, lenD, "down"), key: r + "-" + c + "-down" });
+        }
+      }
+    }
+    return { numbers: numbers, across: across, down: down };
+  }
+
+  function wordCells(r, c, direction){
+    var cells = [];
+    if (!inBounds(r, c) || state.grid[r][c].black) return cells;
+    if (direction === "across"){
+      var startC = c;
+      while (startC > 0 && !state.grid[r][startC - 1].black) startC--;
+      var endC = c;
+      while (endC < state.cols - 1 && !state.grid[r][endC + 1].black) endC++;
+      for (var cc = startC; cc <= endC; cc++) cells.push(r + "-" + cc);
+    } else {
+      var startR = r;
+      while (startR > 0 && !state.grid[startR - 1][c].black) startR--;
+      var endR = r;
+      while (endR < state.rows - 1 && !state.grid[endR + 1][c].black) endR++;
+      for (var rr = startR; rr <= endR; rr++) cells.push(rr + "-" + c);
+    }
+    return cells;
+  }
+
+  function render(){
+    gridEl.style.gridTemplateColumns = "repeat(" + state.cols + ", 1fr)";
+    gridEl.classList.toggle("show-numbers", state.showNumbers);
+    gridEl.innerHTML = "";
+
+    var analysis = analyzeGrid();
+    var numbers = analysis.numbers;
+    var inWordSet = {};
+    if (state.selected){
+      wordCells(state.selected.r, state.selected.c, state.direction).forEach(function(k){
+        inWordSet[k] = true;
+      });
+    }
+
+    var frag = document.createDocumentFragment();
+    for (var r = 0; r < state.rows; r++){
+      for (var c = 0; c < state.cols; c++){
+        var cell = state.grid[r][c];
+        var key = r + "-" + c;
+        var div = document.createElement("div");
+        div.className = "cell";
+        if (cell.black) div.classList.add("black");
+        if (inWordSet[key] && !cell.black) div.classList.add("in-word");
+        var isSelected = state.selected && state.selected.r === r && state.selected.c === c;
+        if (isSelected) div.classList.add("selected");
+        if (!cell.black && cell.sepRight) div.classList.add("sep-right");
+        if (!cell.black && cell.sepBottom) div.classList.add("sep-bottom");
+        div.dataset.r = r;
+        div.dataset.c = c;
+        div.setAttribute("role", "gridcell");
+
+        if (numbers[key] !== undefined){
+          var num = document.createElement("span");
+          num.className = "cell-number";
+          num.textContent = numbers[key];
+          div.appendChild(num);
+        }
+        if (!cell.black && cell.letter){
+          var letterSpan = document.createElement("span");
+          letterSpan.className = "cell-letter";
+          letterSpan.textContent = cell.letter;
+          div.appendChild(letterSpan);
+        }
+        if (isSelected && !cell.black){
+          var dir = document.createElement("span");
+          dir.className = "cell-dir";
+          dir.textContent = state.direction === "across" ? "\u2192" : "\u2193";
+          div.appendChild(dir);
+        }
+        frag.appendChild(div);
+      }
+    }
+    gridEl.appendChild(frag);
+    renderDefinitions(analysis);
+  }
+
+  function renderDefList(ul, words, direction){
+    ul.innerHTML = "";
+    words.forEach(function(w){
+      var li = document.createElement("li");
+      li.className = "def-item";
+
+      var badge = document.createElement("button");
+      badge.type = "button";
+      badge.className = "def-badge";
+      badge.textContent = w.number;
+      badge.title = "Aller à ce mot";
+      badge.addEventListener("click", function(){
+        selectCell(w.r, w.c, { direction: direction });
+      });
+
+      var input = document.createElement("input");
+      input.type = "text";
+      input.className = "def-input";
+      input.placeholder = "Définition…";
+      input.value = state.clues[w.key] || "";
+
+      var printText = document.createElement("span");
+      printText.className = "def-print-text";
+      printText.textContent = input.value;
+
+      input.addEventListener("input", function(){
+        state.clues[w.key] = input.value;
+        printText.textContent = input.value;
+      });
+
+      var lenTag = document.createElement("span");
+      lenTag.className = "def-len";
+      lenTag.textContent = "(" + lenLabel(w) + ")";
+
+      li.appendChild(badge);
+      li.appendChild(input);
+      li.appendChild(printText);
+      li.appendChild(lenTag);
+      ul.appendChild(li);
+    });
+  }
+
+  function renderDefinitions(analysis){
+    renderDefList(document.getElementById("def-across"), analysis.across, "across");
+    renderDefList(document.getElementById("def-down"), analysis.down, "down");
+  }
+
+  function selectCell(r, c, opts){
+    opts = opts || {};
+    if (!inBounds(r, c)) return;
+    var sameCell = state.selected && state.selected.r === r && state.selected.c === c;
+    if (sameCell && !opts.direction){
+      state.direction = state.direction === "across" ? "down" : "across";
+    } else {
+      state.selected = { r: r, c: c };
+      if (opts.direction) state.direction = opts.direction;
+    }
+    render();
+    hiddenInput.focus({ preventScroll: true });
+  }
+
+  function clearSeparators(r, c){
+    var cell = state.grid[r][c];
+    cell.sepRight = false;
+    cell.sepBottom = false;
+    if (c > 0) state.grid[r][c - 1].sepRight = false;
+    if (r > 0) state.grid[r - 1][c].sepBottom = false;
+  }
+
+  function toggleBlack(r, c){
+    if (!inBounds(r, c)) return;
+    var cell = state.grid[r][c];
+    cell.black = !cell.black;
+    if (cell.black){ cell.letter = ""; clearSeparators(r, c); }
+    if (state.symmetry){
+      var mr = state.rows - 1 - r, mc = state.cols - 1 - c;
+      if (!(mr === r && mc === c)){
+        var mcell = state.grid[mr][mc];
+        mcell.black = cell.black;
+        if (mcell.black){ mcell.letter = ""; clearSeparators(mr, mc); }
+      }
+    }
+  }
+
+  // Trait pointillé entre la case précédente et la case sélectionnée (dans le sens courant)
+  function toggleSeparator(){
+    if (!state.selected) return;
+    var r = state.selected.r, c = state.selected.c;
+    var pr = state.direction === "down" ? r - 1 : r;
+    var pc = state.direction === "across" ? c - 1 : c;
+    if (!inBounds(pr, pc)) return;
+    var prev = state.grid[pr][pc];
+    if (prev.black || state.grid[r][c].black) return;
+    if (state.direction === "across") prev.sepRight = !prev.sepRight;
+    else prev.sepBottom = !prev.sepBottom;
+  }
+
+  function moveSelection(dr, dc){
+    if (!state.selected) return;
+    var nr = state.selected.r + dr;
+    var nc = state.selected.c + dc;
+    if (inBounds(nr, nc)){
+      state.selected = { r: nr, c: nc };
+    }
+  }
+
+  function advanceInDirection(){
+    if (!state.selected) return;
+    var dr = state.direction === "down" ? 1 : 0;
+    var dc = state.direction === "across" ? 1 : 0;
+    var nr = state.selected.r + dr;
+    var nc = state.selected.c + dc;
+    if (inBounds(nr, nc) && !state.grid[nr][nc].black){
+      state.selected = { r: nr, c: nc };
+    }
+  }
+
+  function retreatInDirection(){
+    if (!state.selected) return;
+    var dr = state.direction === "down" ? -1 : 0;
+    var dc = state.direction === "across" ? -1 : 0;
+    var nr = state.selected.r + dr;
+    var nc = state.selected.c + dc;
+    if (inBounds(nr, nc) && !state.grid[nr][nc].black){
+      state.selected = { r: nr, c: nc };
+      return true;
+    }
+    return false;
+  }
+
+  function normalizeChar(ch){
+    return ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  gridEl.addEventListener("click", function(e){
+    var cellDiv = e.target.closest(".cell");
+    if (!cellDiv) return;
+    var r = parseInt(cellDiv.dataset.r, 10);
+    var c = parseInt(cellDiv.dataset.c, 10);
+    selectCell(r, c);
+  });
+
+  hiddenInput.addEventListener("keydown", function(e){
+    if (!state.selected) return;
+    var r = state.selected.r, c = state.selected.c;
+
+    if (e.key === "ArrowUp"){ e.preventDefault(); moveSelection(-1, 0); render(); return; }
+    if (e.key === "ArrowDown"){ e.preventDefault(); moveSelection(1, 0); render(); return; }
+    if (e.key === "ArrowLeft"){ e.preventDefault(); moveSelection(0, -1); render(); return; }
+    if (e.key === "ArrowRight"){ e.preventDefault(); moveSelection(0, 1); render(); return; }
+
+    if (e.key === "-" || e.key === "/"){
+      e.preventDefault();
+      toggleSeparator();
+      render();
+      return;
+    }
+
+    if (e.key === " " || e.key === "."){
+      e.preventDefault();
+      toggleBlack(r, c);
+      render();
+      return;
+    }
+
+    if (e.key === "Backspace"){
+      e.preventDefault();
+      var cell = state.grid[r][c];
+      if (cell.letter){
+        cell.letter = "";
+      } else {
+        retreatInDirection();
+        var nc2 = state.grid[state.selected.r][state.selected.c];
+        if (!nc2.black) nc2.letter = "";
+      }
+      render();
+      return;
+    }
+
+    if (e.key === "Delete"){
+      e.preventDefault();
+      if (!state.grid[r][c].black) state.grid[r][c].letter = "";
+      render();
+      return;
+    }
+  });
+
+  hiddenInput.addEventListener("input", function(){
+    var val = hiddenInput.value;
+    hiddenInput.value = "";
+    if (!val || !state.selected) return;
+    var lastChar = val.slice(-1);
+    if (lastChar === "-" || lastChar === "/"){
+      toggleSeparator();
+      render();
+      return;
+    }
+    var ch = normalizeChar(lastChar).toUpperCase();
+    if (!/^[A-Z]$/.test(ch)) return;
+    var r = state.selected.r, c = state.selected.c;
+    if (state.grid[r][c].black) return;
+    state.grid[r][c].letter = ch;
+    advanceInDirection();
+    render();
+  });
+
+  function buildNewGrid(rows, cols){
+    state.rows = rows;
+    state.cols = cols;
+    state.grid = makeGrid(rows, cols);
+    state.selected = { r: 0, c: 0 };
+    state.direction = "across";
+    state.clues = {};
+    render();
+  }
+
+  newGridBtn.addEventListener("click", function(){
+    var rows = Math.min(30, Math.max(3, parseInt(rowsInput.value, 10) || 13));
+    var cols = Math.min(30, Math.max(3, parseInt(colsInput.value, 10) || 13));
+    rowsInput.value = rows;
+    colsInput.value = cols;
+    if (!isGridEmpty()){
+      showConfirm("Cela va remplacer la grille actuelle. Continuer ?", function(){
+        buildNewGrid(rows, cols);
+      });
+      return;
+    }
+    buildNewGrid(rows, cols);
+  });
+
+  numberingToggle.addEventListener("change", function(){
+    state.showNumbers = numberingToggle.checked;
+    render();
+  });
+
+  symmetryToggle.addEventListener("change", function(){
+    state.symmetry = symmetryToggle.checked;
+  });
+
+  hideLettersPrint.addEventListener("change", function(){
+    document.body.classList.toggle("hide-letters-print", hideLettersPrint.checked);
+  });
+  document.body.classList.toggle("hide-letters-print", hideLettersPrint.checked);
+
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function buildPrintableHTML(){
+    var analysis = analyzeGrid();
+    var hideLetters = hideLettersPrint.checked;
+
+    var cellsHtml = "";
+    for (var r = 0; r < state.rows; r++){
+      for (var c = 0; c < state.cols; c++){
+        var cell = state.grid[r][c];
+        var num = analysis.numbers[r + "-" + c];
+        var inner = "";
+        if (num !== undefined) inner += '<span class="pc-num">' + num + "</span>";
+        if (!cell.black && cell.letter && !hideLetters){
+          inner += '<span class="pc-letter">' + escapeHtml(cell.letter) + "</span>";
+        }
+        var extra = "";
+        if (cell.black) extra += " pc-black";
+        if (!cell.black && cell.sepRight) extra += " pc-sep-right";
+        if (!cell.black && cell.sepBottom) extra += " pc-sep-bottom";
+        cellsHtml += '<div class="pc-cell' + extra + '">' + inner + "</div>";
+      }
+    }
+
+    function defsHtml(words){
+      return words.map(function(w){
+        var text = state.clues[w.key] || "";
+        return "<li><b>" + w.number + ".</b> <span>" + escapeHtml(text) + "</span> <i>(" + lenLabel(w) + ")</i></li>";
+      }).join("");
+    }
+
+    return "<!DOCTYPE html>\n" +
+      '<html lang="fr"><head><meta charset="UTF-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      "<title>Grille de mots croisés</title>" +
+      '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+      '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+      '<link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;600;700&display=swap" rel="stylesheet">' +
+      "<style>" +
+      "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}" +
+      'body{font-family:"Newsreader",Georgia,serif;background:#fff;color:#111;margin:0;padding:2rem 1rem;}' +
+      ".wrap{max-width:640px;margin:0 auto;}" +
+      "h1{font-size:1.35rem;text-align:center;border-bottom:1px solid #000;padding-bottom:0.8rem;margin:0 0 1.3rem;font-weight:600;}" +
+      ".pc-print-btn{display:block;margin:0 auto 1.6rem;font:inherit;font-size:0.85rem;padding:0.45rem 1rem;border:1px solid #111;background:#fff;color:#111;border-radius:4px;cursor:pointer;}" +
+      ".pc-grid{container-type:inline-size;display:grid;border:2px solid #111;max-width:420px;margin:0 auto;grid-template-columns:repeat(" + state.cols + ",1fr);}" +
+      ".pc-cell{position:relative;aspect-ratio:1/1;background:#fff;display:flex;align-items:center;justify-content:center;border-right:1px solid #777;border-bottom:1px solid #777;}" +
+      ".pc-cell.pc-black{background:#111;}" +
+      ".pc-cell.pc-sep-right{border-right:2px dashed #111;}" +
+      ".pc-cell.pc-sep-bottom{border-bottom:2px dashed #111;}" +
+      ".pc-letter{font-family:Arial,sans-serif;font-weight:700;font-size:3.6cqw;}" +
+      ".pc-num{position:absolute;top:1px;left:2px;font-size:1.6cqw;color:#555;font-family:Arial,sans-serif;}" +
+      ".pc-defs{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem 2rem;margin-top:1.7rem;font-size:0.85rem;}" +
+      ".pc-defs h2{font-size:0.8rem;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid #000;padding-bottom:0.25rem;margin:0 0 0.5rem;font-weight:600;}" +
+      ".pc-defs ul{list-style:none;margin:0;padding:0;}" +
+      ".pc-defs li{margin-bottom:0.32rem;line-height:1.35;}" +
+      ".pc-defs i{color:#666;font-style:normal;font-size:0.75rem;}" +
+      "@media print{ .pc-print-btn{ display:none; } body{ padding:0.4rem; } }" +
+      "</style></head><body>" +
+      '<div class="wrap">' +
+      '<button class="pc-print-btn" onclick="window.print()">Imprimer cette page / Enregistrer en PDF</button>' +
+      "<h1>Grille de mots croisés</h1>" +
+      '<div class="pc-grid">' + cellsHtml + "</div>" +
+      '<div class="pc-defs">' +
+      "<div><h2>Horizontalement</h2><ul>" + defsHtml(analysis.across) + "</ul></div>" +
+      "<div><h2>Verticalement</h2><ul>" + defsHtml(analysis.down) + "</ul></div>" +
+      "</div>" +
+      "</div>" +
+      "</body></html>";
+  }
+
+  function setPrintStatus(msg){
+    printStatus.textContent = msg;
+  }
+
+  printBtn.addEventListener("click", async function(){
+    var html = buildPrintableHTML();
+    setPrintStatus("Préparation du fichier…");
+    try {
+      if (!window.claude){
+        // Page hébergée normalement (hors claude.ai) : téléchargement classique
+        var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "grille-mots-croises.html";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+        setPrintStatus("Téléchargé — ouvre le fichier puis Ctrl/Cmd+P pour imprimer ou enregistrer en PDF.");
+        return;
+      }
+      var downloads = null;
+      if (typeof window.claude.use === "function"){
+        downloads = await window.claude.use("downloads");
+      }
+      if (!downloads){
+        setPrintStatus("Le téléchargement n'est pas disponible ici. Utilise « Exporter / importer » pour récupérer la grille en texte.");
+        return;
+      }
+      await downloads.save({ filename: "grille-mots-croises.html", data: html });
+      setPrintStatus("Téléchargé — ouvre le fichier puis Ctrl/Cmd+P pour imprimer ou enregistrer en PDF.");
+    } catch (err){
+      var code = err && err.code;
+      if (code === "declined"){
+        setPrintStatus("Téléchargement annulé.");
+      } else {
+        setPrintStatus("Le téléchargement a échoué (" + (code || "erreur inconnue") + ").");
+      }
+    }
+  });
+
+  function gridToText(){
+    var lines = [];
+    for (var r = 0; r < state.rows; r++){
+      var line = "";
+      for (var c = 0; c < state.cols; c++){
+        var cell = state.grid[r][c];
+        line += cell.black ? "#" : (cell.letter || ".");
+      }
+      lines.push(line);
+    }
+    var sepLines = [];
+    for (var sr = 0; sr < state.rows; sr++){
+      for (var sc = 0; sc < state.cols; sc++){
+        var sCell = state.grid[sr][sc];
+        if (sCell.black) continue;
+        if (sCell.sepRight) sepLines.push("SEP " + (sr + 1) + "," + (sc + 1) + ",D");
+        if (sCell.sepBottom) sepLines.push("SEP " + (sr + 1) + "," + (sc + 1) + ",B");
+      }
+    }
+    var analysis = analyzeGrid();
+    var defLines = [];
+    analysis.across.forEach(function(w){
+      var text = state.clues[w.key];
+      if (text) defLines.push("H" + w.number + ": " + text);
+    });
+    analysis.down.forEach(function(w){
+      var text = state.clues[w.key];
+      if (text) defLines.push("V" + w.number + ": " + text);
+    });
+    var out = lines.join("\n");
+    if (sepLines.length) out += "\n\n" + sepLines.join("\n");
+    if (defLines.length) out += "\n\n" + defLines.join("\n");
+    return out;
+  }
+
+  function textToGrid(text){
+    var rawLines = text.replace(/\r/g, "").split("\n");
+    var gridLinePattern = /^[#.A-Za-z]+$/;
+    var gridLines = [];
+    var defLines = [];
+    var phase = "grid";
+    for (var i = 0; i < rawLines.length; i++){
+      var raw = rawLines[i];
+      if (raw.trim() === "") continue;
+      if (phase === "grid" && gridLinePattern.test(raw)){
+        gridLines.push(raw);
+      } else {
+        phase = "defs";
+        defLines.push(raw);
+      }
+    }
+    if (gridLines.length === 0) return;
+    var rows = gridLines.length;
+    var cols = gridLines.reduce(function(max, l){ return Math.max(max, l.length); }, 0);
+    cols = Math.max(3, Math.min(30, cols));
+    var rowsClamped = Math.max(3, Math.min(30, rows));
+    var g = makeGrid(rowsClamped, cols);
+    for (var r = 0; r < rowsClamped; r++){
+      var line = gridLines[r] || "";
+      for (var c = 0; c < cols; c++){
+        var ch = line[c] || ".";
+        if (ch === "#"){
+          g[r][c].black = true;
+        } else if (/^[A-Za-z]$/.test(ch)){
+          g[r][c].letter = ch.toUpperCase();
+        }
+      }
+    }
+    state.rows = rowsClamped;
+    state.cols = cols;
+    state.grid = g;
+    state.selected = { r: 0, c: 0 };
+    state.clues = {};
+    rowsInput.value = rowsClamped;
+    colsInput.value = cols;
+
+    var analysis = analyzeGrid();
+    var lookup = {};
+    analysis.across.forEach(function(w){ lookup["H" + w.number] = w.key; });
+    analysis.down.forEach(function(w){ lookup["V" + w.number] = w.key; });
+    var clueLinePattern = /^([HV])(\d+)\s*:\s*(.*)$/i;
+    var sepLinePattern = /^SEP\s+(\d+)\s*,\s*(\d+)\s*,\s*([DB])\s*$/i;
+    defLines.forEach(function(line){
+      var sm = line.trim().match(sepLinePattern);
+      if (sm){
+        var sr = parseInt(sm[1], 10) - 1, sc = parseInt(sm[2], 10) - 1;
+        var isRight = sm[3].toUpperCase() === "D";
+        var nr = isRight ? sr : sr + 1, nc = isRight ? sc + 1 : sc;
+        if (inBounds(sr, sc) && inBounds(nr, nc) && !state.grid[sr][sc].black && !state.grid[nr][nc].black){
+          if (isRight) state.grid[sr][sc].sepRight = true;
+          else state.grid[sr][sc].sepBottom = true;
+        }
+        return;
+      }
+      var m = line.match(clueLinePattern);
+      if (!m) return;
+      var refKey = m[1].toUpperCase() + m[2];
+      var key = lookup[refKey];
+      if (key) state.clues[key] = m[3].trim();
+    });
+
+    render();
+  }
+
+  exportBtn.addEventListener("click", function(){
+    textArea.value = gridToText();
+    textPanel.classList.remove("hidden");
+  });
+
+  closeTextPanel.addEventListener("click", function(){
+    textPanel.classList.add("hidden");
+  });
+
+  copyTextBtn.addEventListener("click", function(){
+    textArea.value = gridToText();
+    textArea.select();
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(textArea.value);
+    } else {
+      document.execCommand("copy");
+    }
+  });
+
+  applyTextBtn.addEventListener("click", function(){
+    showConfirm("Cela va remplacer la grille actuelle par le contenu du texte. Continuer ?", function(){
+      textToGrid(textArea.value);
+      textPanel.classList.add("hidden");
+    });
+  });
+
+  // Initialisation
+  buildNewGrid(13, 13);
+})();
+</script>
+</body>
+</html>
